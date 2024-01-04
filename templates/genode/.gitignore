@@ -1,0 +1,6 @@
+# If these are not here, the flake git repo will cause issues for git repos in
+# sub directories.
+src
+src/*
+
+!repos/*/src

@@ -63,8 +63,7 @@
 
             dontStrip = true;
 
-            #TODO: Fix toolchain derivation so the path doesn't need to be known here
-            CROSS_DEV_PREFIX = "${pkgs.toolchain-bin}/usr/local/genode/tool/23.05/bin/genode-x86-";
+            CROSS_DEV_PREFIX = "${pkgs.toolchain-bin}/bin/genode-x86-";
 
             # Make dev shell cleaner by placing build artifacts in a separate directory. This also makes
             # the unpackPhase idempotent.

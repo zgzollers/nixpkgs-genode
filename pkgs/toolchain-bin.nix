@@ -2,12 +2,14 @@
 
 stdenv.mkDerivation {
     name = "genode-toolchain-bin";
+    version = "23.05";
 
     src = fetchurl {
         url = "https://sourceforge.net/projects/genode/files/genode-toolchain/23.05/genode-toolchain-23.05.tar.xz";
         hash = "sha256-iAiG77oPWSo9PF/7n6Y+aSy2vWQ+E8XEaNDaAnwicW4=";
     };
 
+    sourceRoot = ".";
     dontStrip = true;
 
     buildInputs = with pkgs; [
@@ -25,8 +27,8 @@ stdenv.mkDerivation {
         autoPatchelfHook
     ];
 
-    unpackPhase = ''
+    installPhase = ''
         mkdir -p ''${out}
-        tar -xf ''${src} -C ''${out}
+        cp -r ./usr/local/genode/tool/23.05/* "''${out}"
     '';
 }

@@ -1,5 +1,7 @@
 {
     inputs = {
+        # Nix flakes
+
         nixpkgs.url = "nixpkgs/nixpkgs-unstable";
 
         zgzollers-genode = {
@@ -11,9 +13,21 @@
             url = "github:edolstra/flake-compat";
             flake = false;
         };
+
+        # Genode source repositories
+
+        genode = {
+            url = "github:genodelabs/genode/23.11";
+            flake = false;
+        };
+
+        genode-world = {
+            url = "github:genodelabs/genode-world";
+            flake = false;
+        };
     };
 
-    outputs = { self, nixpkgs, zgzollers-genode, flake-compat }: 
+    outputs = { self, nixpkgs, zgzollers-genode, flake-compat, genode, genode-world }: 
     let
         system = "x86_64-linux";
 
@@ -26,7 +40,11 @@
         };
 
         genodeSrc = zgzollers-genode.lib.mkGenodeSrc {
-            rev = "5fdea3a5953e07430e8c45a2b974cf9d0de4228f";
+            inherit genode;
+
+            repos = {
+                "world" = genode-world;
+            };
         };
 
     in {
@@ -57,7 +75,6 @@
                 xorriso
                 wget
 
-            ] ++ [
                 toolchain-bin
             ];
 

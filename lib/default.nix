@@ -1,16 +1,9 @@
 { pkgs, lib }: 
 
 {
-    mkGenodeSrc = { rev, ports ? [ ] }: pkgs.stdenv.mkDerivation rec {
+    mkGenodeSrc = { genode, repos }: pkgs.stdenv.mkDerivation {
         name = "genode-src";
-
-        src = builtins.fetchGit {
-            inherit rev;
-
-            name = "genode";
-
-            url = "https://github.com/genodelabs/genode.git";
-        };
+        src = genode;
 
         buildInputs = with pkgs; [
             expect
@@ -21,6 +14,16 @@
 
         patchPhase = ''
             patchShebangs --host $(find . -type f -executable)
+        '';
+
+        buildPhase = ''
+            # Link repos to source directory
+            ${
+                lib.lists.foldl 
+                    (cur: repo: cur + "cp -r ${repos.${repo}} ./repos/${repo}\n")
+                    ""
+                    (builtins.attrNames repos)
+            }
         '';
 
         # TODO: This is much more complicated than originally anticipated. A tool needs to be created

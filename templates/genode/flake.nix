@@ -45,6 +45,8 @@
             repos = {
                 "world" = genode-world;
             };
+
+            ports = import ./.nix/ports.nix;
         };
 
     in {
@@ -101,8 +103,6 @@
                 ln -s $(pwd)/build.conf ./build/etc/build.conf
 
                 ln -s $(pwd)/repos/* ''${GENODE_DIR}/repos
-
-                ''${GENODE_DIR}/tool/ports/prepare_port nova grub2
 
                 cd ..
             '';

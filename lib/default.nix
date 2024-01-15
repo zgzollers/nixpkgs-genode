@@ -1,44 +1,145 @@
-{ pkgs, lib }: 
+{ pkgs, lib }:
 
-{
-    mkGenodeSrc = { genode, repos }: pkgs.stdenv.mkDerivation {
-        name = "genode-src";
-        src = genode;
+rec {
+    mkGenodeSrc = { genode, repos ? { }, ports ? [ ] }: 
+    let
+        preparedPorts = lib.lists.forEach ports (port: preparePort genodeRepo port);
+    
+        # TODO: evaluate base genode source and repos separately to maximize reuse
+        genodeRepo = pkgs.stdenv.mkDerivation {
+            name = "genode-repo";
+            src = genode;
 
-        buildInputs = with pkgs; [
-            expect
-            git
-            gnumake
-            wget
-        ];
+            buildInputs = with pkgs; [
+                expect
+                git
+                gnumake
+                wget
+            ];
 
-        patchPhase = ''
-            patchShebangs --host $(find . -type f -executable)
-        '';
+            patchPhase = ''
+                patchShebangs --host $(find . -type f -executable)
+            '';
 
-        buildPhase = ''
-            # Link repos to source directory
-            ${
-                lib.lists.foldl 
-                    (cur: repo: cur + "cp -r ${repos.${repo}} ./repos/${repo}\n")
-                    ""
-                    (builtins.attrNames repos)
+            buildPhase = ''
+                # Copy repos to source directory
+                ${
+                    lib.lists.foldl 
+                        (cur: repo: cur + "cp -r ${repos.${repo}} ./repos/${repo}\n")
+                        ""
+                        (builtins.attrNames repos)
+                }
+            '';
+
+            installPhase = ''
+                mkdir -p ''${out}
+                cp -r . ''${out}
+            '';
+        };
+
+        in pkgs.stdenv.mkDerivation {
+            name = "genode-src";
+
+            src = genodeRepo;
+
+            buildInputs = with pkgs; [
+                rsync
+            ];
+
+            buildPhase = ''
+                # Copy ports to contrib directory
+                ${
+                    lib.lists.foldl
+                        (cur: port: cur + "rsync -a ${port}/ ./\n")
+                        ""
+                        preparedPorts
+                }
+            '';
+
+            installPhase = ''
+                mkdir -p ''${out}
+                cp -r . ''${out}
+            '';
+        };
+
+    fetchPort = args:
+        if args.type == "archive"
+        then
+            builtins.fetchurl {
+                inherit (args) url sha256;
             }
-        '';
 
-        # TODO: This is much more complicated than originally anticipated. A tool needs to be created
-        # to automatically patch all the port files and download the repositories separately. This is
-        # because git cannot access the internet when building the derivation.
+        else if args.type == "git"
+        then
+            builtins.fetchGit {
+                inherit (args) url rev;
+            }
 
-        # buildPhase = if (ports != [ ]) 
-        # then ''
-        #     ./tool/ports/prepare_port ${lib.lists.foldl (str: elem: str + "${elem} ") "" ports}
-        # '' 
-        # else "";
+        else throw "unsupported port type ${args.type}";
 
-        installPhase = ''
-            mkdir -p ''${out}
-            cp -r . ''${out}
-        '';
-    };
+    preparePort = genodeSrc: args:
+        let
+            download = fetchPort args;
+        
+        in pkgs.stdenv.mkDerivation {
+            inherit (args) name;
+
+            srcs = [
+                genodeSrc
+                download
+            ];
+
+            buildInputs = with pkgs; [
+                git
+                wget
+            ];
+
+            preUnpack = ''
+                export GENODE_DIR="$(pwd)/genode-src";
+            '';
+
+            unpackPhase = ''
+                runHook preUnpack
+
+                mkdir -p "''${GENODE_DIR}"
+                cp -r ${genodeSrc}/* "''${GENODE_DIR}"
+
+                ${
+                    if args.type == "git"
+                    then
+                        ''
+                            export DOWNLOAD_DIR=''${GENODE_DIR}/contrib/${args.name}-${args.hash}/${args.dir}
+
+                            mkdir -p "''${DOWNLOAD_DIR}"
+                            cp -r ${download}/* "''${DOWNLOAD_DIR}"
+                        ''
+                    else
+                        ''
+                            export DOWNLOAD_DIR=''${GENODE_DIR}/contrib/cache
+
+                            mkdir -p "''${DOWNLOAD_DIR}"
+                            cp -r ${download} "''${DOWNLOAD_DIR}/${args.sha256}_$(stripHash ${download})"
+                        ''
+                }
+
+                chmod -R +w ''${GENODE_DIR}
+            '';
+
+            patchPhase = ''
+                patch ''${GENODE_DIR}/tool/ports/mk/install.mk ${./prepare_port.patch}
+            '';
+
+            buildPhase = ''
+                ''${GENODE_DIR}/tool/ports/prepare_port ${args.name}
+            '';
+
+            preFixup = ''
+                patchShebangs --host $(find . -type f -executable)
+            '';
+
+            installPhase = ''
+                mkdir -p ''${out}/contrib
+                cp -r ''${GENODE_DIR}/contrib/${args.name}-${args.hash} ''${out}/contrib
+            '';
+        };
 }

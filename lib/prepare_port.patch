@@ -1,0 +1,13 @@
+diff -Naur genode-src/tool/ports/mk/install.mk genode-patch/tool/ports/mk/install.mk
+--- genode-src/tool/ports/mk/install.mk	2024-01-24 04:52:15.609081212 +0000
++++ genode-patch/tool/ports/mk/install.mk	2024-01-24 14:45:49.820222027 +0000
+@@ -163,8 +163,7 @@
+ 	$(VERBOSE)dir=$(call _git_dir,$*);\
+ 		test -d $$dir || $(MSG_DOWNLOAD)$(URL($*)); \
+ 		test -d $$dir || git clone $(URL($*)) $$dir &> >(sed 's/^/$(MSG_GIT)/'); \
+-		$(MSG_UPDATE)$$dir; \
+-		cd $$dir && $(GIT) fetch && $(GIT) reset -q --hard HEAD && $(GIT) checkout -q $(REV($*))
++		$(MSG_UPDATE)$$dir;
+ 
+ 
+ ##

@@ -50,7 +50,7 @@
         };
 
     in {
-        packages.${system}.default = pkgs.stdenv.mkDerivation {
+        packages.${system}.default = pkgs.stdenv.mkDerivation rec {
             name = "genode-project";
 
             srcs = [
@@ -59,7 +59,7 @@
                 genodeSrc
             ];
 
-            sourceRoot = "./src";
+            sourceRoot = "./.build";
 
             buildInputs = with pkgs; [
                 # TODO: Find a way to declare these dependencies in the genodeSrc lib function
@@ -82,38 +82,38 @@
 
             dontStrip = true;
 
-            CROSS_DEV_PREFIX = "${pkgs.toolchain-bin}/bin/genode-x86-";
+            shellHook = ''
+                export CROSS_DEV_PREFIX="${pkgs.toolchain-bin}/bin/genode-x86-";
 
-            # Make dev shell cleaner by placing build artifacts in a separate directory. This also makes
-            # the unpackPhase idempotent.
-            preUnpack = ''
-                rm -rf ./src
-                mkdir -p ./src
+                export SOURCE_DIR="$(pwd)/${sourceRoot}";
+                export GENODE_DIR="''${SOURCE_DIR}/${genodeSrc.name}";
+                export BUILD_DIR="''${SOURCE_DIR}/build";
             '';
 
-            unpackCmd = "cp -r $curSrc ./src/$(stripHash $curSrc)";
+            preUnpack = ''
+                eval "''${shellHook}"
+
+                rm -rf "''${SOURCE_DIR}"
+                mkdir -p "''${SOURCE_DIR}"
+            '';
+
+            unpackCmd = "cp -r $curSrc $SOURCE_DIR/$(stripHash $curSrc)";
 
             postUnpack = ''
-                cd ./src
+                ''${GENODE_DIR}/tool/create_builddir x86_64
+                rm -f "''${BUILD_DIR}/etc/build.conf"
+                ln -s "''${SOURCE_DIR}/build.conf" "''${BUILD_DIR}/etc/build.conf"
 
-                export GENODE_DIR="$(pwd)/${genodeSrc.name}"
-
-                ''${GENODE_DIR}/tool/create_builddir x86_64 BUILD_DIR=./build
-                rm -f ./build/etc/build.conf
-                ln -s $(pwd)/build.conf ./build/etc/build.conf
-
-                ln -s $(pwd)/repos/* ''${GENODE_DIR}/repos
-
-                cd ..
+                ln -s ''${SOURCE_DIR}/repos/* "''${GENODE_DIR}/repos"
             '';
 
             buildPhase = ''
-                cd ./build
-                make run/hello
+                make -C "''${BUILD_DIR}" run/hello
             '';
 
             installPhase = ''
-
+                mkdir -p ''${out}
+                cp ''${BUILD_DIR}/var/run/hello.iso ''${out}
             '';
         };
     };

@@ -46,7 +46,7 @@
                 "world" = genode-world;
             };
 
-            ports = import ./.nix/ports.nix;
+            ports = import ./.nix/ports.nix { inherit pkgs; };
         };
 
     in {

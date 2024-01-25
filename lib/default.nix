@@ -92,7 +92,8 @@ rec {
             buildInputs = with pkgs; [
                 git
                 wget
-            ];
+            ]
+            ++ (lib.attrsets.attrByPath [ "extraInputs" ] [ ] args);
 
             preUnpack = ''
                 export GENODE_DIR="$(pwd)/genode-src";

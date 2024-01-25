@@ -95,6 +95,9 @@ rec {
             ]
             ++ (lib.attrsets.attrByPath [ "extraInputs" ] [ ] args);
 
+            dontStrip = true;
+            dontConfigure = true;
+
             preUnpack = ''
                 export GENODE_DIR="$(pwd)/genode-src";
             '';

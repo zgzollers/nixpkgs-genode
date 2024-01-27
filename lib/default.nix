@@ -127,6 +127,9 @@ rec {
                 }
 
                 chmod -R +w ''${GENODE_DIR}
+
+                # TODO: need to also patch archives after they are extracted :(
+                patchShebangs --host $(find ''${GENODE_DIR}/contrib -type f -executable)
             '';
 
             patchPhase = ''

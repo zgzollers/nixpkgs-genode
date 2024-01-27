@@ -17,18 +17,16 @@ rec {
                 wget
             ];
 
-            patchPhase = ''
-                patchShebangs --host $(find . -type f -executable)
-            '';
-
             buildPhase = ''
                 # Copy repos to source directory
                 ${
                     lib.lists.foldl 
-                        (cur: repo: cur + "cp -r ${repos.${repo}} ./repos/${repo}\n")
+                        (cur: repo: cur + "cp -r ${repos.${repo}} ./repos/${repo} && chmod -R +w ./repos/${repo}\n")
                         ""
                         (builtins.attrNames repos)
                 }
+
+                patchShebangs --host $(find . -type f -executable)
             '';
 
             installPhase = ''

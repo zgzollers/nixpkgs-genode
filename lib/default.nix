@@ -73,6 +73,8 @@ rec {
         then
             builtins.fetchGit {
                 inherit (args) url rev;
+
+                allRefs = true;
             }
 
         else throw "unsupported port type ${args.type}";

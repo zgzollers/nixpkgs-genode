@@ -1,10 +1,10 @@
 {
     inputs = {
-        # Nix flakes
+        # Nix inputs
 
         nixpkgs.url = "nixpkgs/nixpkgs-unstable";
 
-        zgzollers-genode = {
+        genode-utils = {
             url = "github:zgzollers/nixpkgs-genode";
             inputs.nixpkgs.follows = "nixpkgs";
         };
@@ -14,12 +14,14 @@
             flake = false;
         };
 
-        # Genode source repositories
+        # Genode source repository
 
         genode = {
             url = "github:genodelabs/genode/23.11";
             flake = false;
         };
+
+        # Additional Genode repositories
 
         genode-world = {
             url = "github:genodelabs/genode-world";
@@ -27,7 +29,7 @@
         };
     };
 
-    outputs = { self, nixpkgs, zgzollers-genode, flake-compat, genode, genode-world }: 
+    outputs = { self, nixpkgs, genode-utils, flake-compat, genode, genode-world }: 
     let
         system = "x86_64-linux";
 
@@ -35,85 +37,34 @@
             inherit system; 
 
             overlays = [
-                zgzollers-genode.overlays.default
+                genode-utils.overlays.packages
+                genode-utils.overlays.lib
             ];
         };
-
-        genodeSrc = zgzollers-genode.lib.mkGenodeSrc {
-            inherit genode;
-
-            repos = {
-                "world" = genode-world;
+    in {
+        packages.${system}.default = genode-utils.lib.mkGenodeDerivation rec {
+            genodeTree = genode-utils.lib.mkGenodeBase {
+                src = genode;
+                toolchain = pkgs.genode.toolchain-bin;
             };
 
-            ports = import ./.nix/ports.nix { inherit pkgs; };
-        };
+            name = "hello.iso";
 
-    in {
-        packages.${system}.default = pkgs.stdenv.mkDerivation rec {
-            name = "genode-project";
+            buildConf = ./build.conf;
 
-            srcs = [
-                ./build.conf
-                ./repos
-                genodeSrc
+            repos = [
+                { name = "world"; src = genode-world; }
+                { name = "lab"; src = ./repos/lab; }
             ];
 
-            sourceRoot = "./.build";
-
-            buildInputs = with pkgs; [
-                # TODO: Find a way to declare these dependencies in the genodeSrc lib function
-                # There are duplicates that exist, but the dependencies wont propegate to this
-                # environment if they are declared in that function.
-
-                bc
-                bison
-                expect
-                flex
-                git
-                gnumake
-                libxml2
-                qemu_kvm
-                xorriso
-                wget
-
-                toolchain-bin
-            ];
-
-            dontStrip = true;
-
-            shellHook = ''
-                export CROSS_DEV_PREFIX="${pkgs.toolchain-bin}/bin/genode-x86-";
-
-                export SOURCE_DIR="$(pwd)/${sourceRoot}";
-                export GENODE_DIR="''${SOURCE_DIR}/${genodeSrc.name}";
-                export BUILD_DIR="''${SOURCE_DIR}/build";
-            '';
-
-            preUnpack = ''
-                eval "''${shellHook}"
-
-                rm -rf "''${SOURCE_DIR}"
-                mkdir -p "''${SOURCE_DIR}"
-            '';
-
-            unpackCmd = "cp -r $curSrc $SOURCE_DIR/$(stripHash $curSrc)";
-
-            postUnpack = ''
-                ''${GENODE_DIR}/tool/create_builddir x86_64
-                rm -f "''${BUILD_DIR}/etc/build.conf"
-                ln -s "''${SOURCE_DIR}/build.conf" "''${BUILD_DIR}/etc/build.conf"
-
-                ln -s ''${SOURCE_DIR}/repos/* "''${GENODE_DIR}/repos"
-            '';
+            ports = (import ./.nix/ports.nix { inherit pkgs; });
 
             buildPhase = ''
-                make -C "''${BUILD_DIR}" run/hello
+                make run/hello
             '';
 
             installPhase = ''
-                mkdir -p ''${out}
-                cp ''${BUILD_DIR}/var/run/hello.iso ''${out}
+                cp "''${BUILD_DIR}/var/run/hello.iso" "''${out}"
             '';
         };
     };

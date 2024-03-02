@@ -21,7 +21,15 @@
 
             in f (builtins.intersectAttrs (builtins.functionArgs f) args);
     in {
-        overlays.default = final: prev: self.packages.${system};
+        overlays = {
+            packages = final: prev: { 
+                genode = self.packages.${system};
+            };
+
+            lib = final: prev: {
+                lib = prev.lib // { lib.genode = self.lib; };
+            };
+        };
 
         lib = callImport ./lib;
 

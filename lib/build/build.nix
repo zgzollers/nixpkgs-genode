@@ -11,17 +11,20 @@
         installPhase 
     }@args: 
     let
-        updatedTree = mkGenodeTree { 
+        treeWithRepos = mkGenodeTree {
             inherit genodeTree;
 
             repos = pkgs.lib.lists.forEach 
                 repos
                 (repo: mkGenodeRepo repo);
+        };
 
-            # TODO: make tree with repos before preparing ports
+        updatedTree = mkGenodeTree { 
+            genodeTree = treeWithRepos;
+
             ports = pkgs.lib.lists.forEach 
                 ports
-                (port: preparePort (port // { inherit genodeTree; }));
+                (port: preparePort (port // { genodeTree = treeWithRepos; }));
         };
 
     in pkgs.stdenv.mkDerivation rec {

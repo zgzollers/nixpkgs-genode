@@ -27,7 +27,7 @@
             };
 
             lib = final: prev: {
-                lib = prev.lib // { lib.genode = self.lib; };
+                lib = prev.lib // { genode = self.lib; };
             };
         };
 

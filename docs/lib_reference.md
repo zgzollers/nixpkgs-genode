@@ -62,6 +62,7 @@ A convenience function that allows expanding the Genode tree, creating a build d
 | repos | `[ ]` | List of arguments that will be passed through[`mkGenodeRepo`](#mkgenoderepo), adding the resulting [`genode-repo`][2]'s to the `genodeTree` before building the derivation |
 | ports | `[ ]` | List of arguments that will be passed through the [`preparePort`](#prepareport), adding the resulting [`genode-port`][3]'s to the `genodeTree` before building the derivation | 
 | buildConf | [default.conf](../lib/build/default.conf) | File used to replace the default `etc/build.conf` file in the Genode build directory |
+| extraInputs | `[ ]` | Extra build inputs to be added when building the derivation |
 | buildPhase | none | Build commands executed from inside a Genode build directory (see below for environment variables set before calling this phase) |
 | installPhase | none | Similar to `installPhase` parameter for `mkDerivation`. Commands executed outside the build directory (use `$BUILD_DIR` to access build artifacts) |
 

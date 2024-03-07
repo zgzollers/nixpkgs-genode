@@ -7,6 +7,7 @@
         repos ? [ ],
         ports ? [ ],
         buildConf ? ./default.conf,
+        extraInputs ? [ ],
         buildPhase,
         installPhase 
     }@args: 
@@ -28,7 +29,6 @@
         };
 
     in pkgs.stdenv.mkDerivation rec {
-        inherit (updatedTree) buildInputs;
         inherit name installPhase;
 
         srcs = [
@@ -37,6 +37,8 @@
         ];
 
         sourceRoot = "./.build";
+
+        buildInputs = updatedTree.buildInputs ++ extraInputs;
 
         shellHook = ''
             export CROSS_DEV_PREFIX="${updatedTree.toolchain}/bin/genode-x86-";

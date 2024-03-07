@@ -6,7 +6,7 @@
         genodeTree,
         repos ? [ ],
         ports ? [ ],
-        buildConf ? ./build.conf,
+        buildConf ? ./default.conf,
         buildPhase,
         installPhase 
     }@args: 

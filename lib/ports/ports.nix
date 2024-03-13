@@ -40,7 +40,8 @@ rec {
                 git
                 wget
             ]
-            ++ extraInputs;
+            ++ extraInputs
+            ++ [ genodeTree.toolchain ];
 
             dontStrip = true;
             dontConfigure = true;

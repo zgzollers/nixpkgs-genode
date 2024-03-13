@@ -40,6 +40,8 @@
 
         buildInputs = updatedTree.buildInputs ++ extraInputs;
 
+        dontConfigure = true;
+
         shellHook = ''
             export CROSS_DEV_PREFIX="${updatedTree.toolchain}/bin/genode-x86-";
 

@@ -1,9 +1,12 @@
 {
     inputs = {
         nixpkgs.url = "nixpkgs/nixpkgs-unstable";
+
+        # Required for the `python38` package
+        nixpkgs-python.url = "nixpkgs/nixos-23.11";
     };
 
-    outputs = { self, nixpkgs }: let
+    outputs = { self, nixpkgs, nixpkgs-python }: let
         system = "x86_64-linux";
 
         callImport = path: 
@@ -14,6 +17,10 @@
 
                     pkgs = import nixpkgs {
                         inherit system;
+
+                        overlays = [
+                            (final: prev: { python38 = (import nixpkgs-python { inherit system; }).python38; })
+                        ];
                     };
 
                     lib = pkgs.lib;

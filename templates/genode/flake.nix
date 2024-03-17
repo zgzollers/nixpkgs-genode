@@ -17,7 +17,7 @@
         # Genode source repository
 
         genode = {
-            url = "github:genodelabs/genode/23.11";
+            url = "github:genodelabs/genode/24.02";
             flake = false;
         };
 

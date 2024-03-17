@@ -90,8 +90,9 @@ Create a [`genode port`](#genode-port) that is ready to be merged into a Genode 
 | url | none | URL of the source code or archive. Can be obtained from the `URL` variable in the `*.port` file |
 | extraInputs | `[ ]` | Extra dependencies required to prepare/build the port. Added to the `buildInputs` attribute of a [`genode-tree`][1] when passed to the [`mkGenodeTree`](#mkgenodetree) function |
 | rev | `null` | Git commit hash to be used when pulling the port source repository. Can be obtained from the `REV` variable in the `*.port` file. *Only required if port is of type `git`* |
-| dir | `null` | Relative location of the source code. Can be obtained from the `DIR` variable in the `*.port` file. *Only required if the port is of type `git`* 
-| sha256 | `null` | Expected SHA256 hash of a downloaded archive. Can be obtained from the `SHA` variable in the `*.port` file. *Only required if port is of type `archive`* 
+| dir | `null` | Relative location of the source code. Can be obtained from the `DIR` variable in the `*.port` file. *Only required if the port is of type `git`* |
+| sha256 | `null` | Expected SHA256 hash of a downloaded archive. Can be obtained from the `SHA` variable in the `*.port` file. *Only required if port is of type `archive`* |
+| filename | `null` | Optional renaming of downloaded archive file. Can be obtained from the `NAME` variable in the `*.port` file (if present). *Only applicable to ports of type `archive`* | 
 
 
 

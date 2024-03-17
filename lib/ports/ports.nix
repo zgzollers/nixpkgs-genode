@@ -27,7 +27,8 @@ rec {
         extraInputs ? [ ],
         rev ? null,
         dir ? null,
-        sha256 ? null
+        sha256 ? null,
+        filename ? null
     }: {
         inherit name type extraInputs;
 
@@ -68,9 +69,10 @@ rec {
                     else
                         ''
                             export DOWNLOAD_DIR=''${GENODE_DIR}/contrib/cache
+                            export FILENAME=${if filename != null then "${filename}" else ''$(stripHash ''${src})''}
 
                             mkdir -p "''${DOWNLOAD_DIR}"
-                            cp -r ''${src} "''${DOWNLOAD_DIR}/${sha256}_$(stripHash ''${src})"
+                            cp -r ''${src} "''${DOWNLOAD_DIR}/${sha256}_''${FILENAME}"
                         ''
                 }
 

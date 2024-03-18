@@ -6,10 +6,12 @@ rec {
         buildInputs = with pkgs; [
             bc
             bison
+            e2tools
             expect
             flex
             git
             gnumake
+            gptfdisk
             libxml2
             qemu_kvm
             xorriso
